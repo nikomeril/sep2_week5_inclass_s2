@@ -2,8 +2,11 @@ pipeline {
     agent any
 
     environment {
+        DOCKERHUB_CREDENTIALS_ID = 'hub'
         SONARQUBE_SERVER = 'SonarQubeServer'  // The name of the SonarQube server configured in Jenkins
         SONAR_TOKEN = 'squ_d4c7d7154a5445aa9bae67771f1c8696e7b2c4b8' // Store the token securely
+        DOCKERHUB_REPO = 'nikome1/dev-ops-demo'
+        DOCKER_IMAGE_TAG = 'ver1'
     }
 
     stages {
@@ -34,6 +37,23 @@ pipeline {
                 }
             }
         }
+
+        stage('Build Docker Image') {
+                    steps {
+                        script {
+                            docker.build("${env.DOCKERHUB_REPO}:${env.DOCKER_IMAGE_TAG}")
+                        }
+                    }
+                }
+                stage('Push Docker Image to Docker Hub') {
+                    steps {
+                        script {
+                            docker.withRegistry('https://index.docker.io/v1/', env.DOCKERHUB_CREDENTIALS_ID) {
+                                docker.image("${env.DOCKERHUB_REPO}:${env.DOCKER_IMAGE_TAG}").push()
+                            }
+                        }
+                    }
+                }
 
     }
 }
