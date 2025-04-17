@@ -2,8 +2,10 @@ pipeline {
     agent any
 
     environment {
-        SONARQUBE_SERVER = 'SonarQubeServer'  // The name of the SonarQube server configured in Jenkins
-        SONAR_TOKEN = 'squ_d4c7d7154a5445aa9bae67771f1c8696e7b2c4b8' // Store the token securely
+        DOCKERHUB_CREDENTIALS_ID = 'hub'
+        SONARQUBE_SERVER = 'SonarQubeServer'
+        SONAR_TOKEN = credentials('sonarqube') // Jenkins credential ID for SonarQube token
+        DOCKER_IMAGE = 'yourdockerhubusername/devops-demo:latest'
     }
 
     stages {
@@ -35,5 +37,15 @@ pipeline {
             }
         }
 
+        stage('Docker Build & Push') {
+            steps {
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', env.DOCKERHUB_CREDENTIALS_ID) {
+                        def image = docker.build("${env.DOCKER_IMAGE}")
+                        image.push()
+                    }
+                }
+            }
+        }
     }
 }
